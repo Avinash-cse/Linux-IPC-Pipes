@@ -37,52 +37,66 @@ Testing the C Program for the desired output.
 void server(int, int);
 void client(int, int);
 
-int main() {
+int main()
+{
     int p1[2], p2[2], pid;
+
     pipe(p1);
     pipe(p2);
+
     pid = fork();
 
-    if (pid == 0) {
-        close(p1[1]); // child closes write end of pipe1
-        close(p2[0]); // child closes read end of pipe2
+    if (pid == 0)
+    {
+        close(p1[1]);
+        close(p2[0]);
         server(p1[0], p2[1]);
         exit(0);
     }
 
-    close(p1[0]); // parent closes read end of pipe1
-    close(p2[1]); // parent closes write end of pipe2
+    close(p1[0]);
+    close(p2[1]);
     client(p1[1], p2[0]);
+
     wait(NULL);
     return 0;
 }
 
-void server(int rfd, int wfd) {
+void server(int rfd, int wfd)
+{
     int n;
     char fname[2000], buff[2000];
+
     n = read(rfd, fname, 2000);
     fname[n] = '\0';
+
     int fd = open(fname, O_RDONLY);
+
     if (fd < 0)
         write(wfd, "can't open", 9);
-    else {
+    else
+    {
         n = read(fd, buff, 2000);
         write(wfd, buff, n);
         close(fd);
     }
 }
 
-void client(int wfd, int rfd) {
+void client(int wfd, int rfd)
+{
     int n;
     char fname[2000], buff[2000];
+
     printf("Enter filename: ");
     scanf("%s", fname);
+
     write(wfd, fname, 2000);
+
     n = read(rfd, buff, 2000);
     buff[n] = '\0';
+
     write(1, buff, n);
 }
-
 
 
 
@@ -105,22 +119,25 @@ void client(int wfd, int rfd) {
 void server();
 void client();
 
-int main() {
+int main()
+{
     pid_t pid;
 
-    // Create FIFO if it doesn't exist
     mkfifo(FIFO_FILE, 0666);
 
-    pid = fork();  // Create a child process
+    pid = fork();
 
-    if (pid > 0) {
-        // Parent process acts as the server
-        sleep(1);  // Ensure client is ready
+    if (pid > 0)
+    {
+        sleep(1);
         server();
-    } else if (pid == 0) {
-        // Child process acts as the client
+    }
+    else if (pid == 0)
+    {
         client();
-    } else {
+    }
+    else
+    {
         perror("Fork failed");
         exit(EXIT_FAILURE);
     }
@@ -128,25 +145,28 @@ int main() {
     return 0;
 }
 
-// Server: Reads from hello.txt and writes to FIFO
-void server() {
+void server()
+{
     int fifo_fd, file_fd;
     char buffer[1024];
     ssize_t bytes_read;
 
     file_fd = open(FILE_NAME, O_RDONLY);
-    if (file_fd == -1) {
+    if (file_fd == -1)
+    {
         perror("Error opening hello.txt");
         exit(EXIT_FAILURE);
     }
 
     fifo_fd = open(FIFO_FILE, O_WRONLY);
-    if (fifo_fd == -1) {
+    if (fifo_fd == -1)
+    {
         perror("Error opening FIFO");
         exit(EXIT_FAILURE);
     }
 
-    while ((bytes_read = read(file_fd, buffer, sizeof(buffer))) > 0) {
+    while ((bytes_read = read(file_fd, buffer, sizeof(buffer))) > 0)
+    {
         write(fifo_fd, buffer, bytes_read);
     }
 
@@ -154,27 +174,26 @@ void server() {
     close(fifo_fd);
 }
 
-// Client: Reads from FIFO and prints the content
-void client() {
+void client()
+{
     int fifo_fd;
     char buffer[1024];
     ssize_t bytes_read;
 
     fifo_fd = open(FIFO_FILE, O_RDONLY);
-    if (fifo_fd == -1) {
+    if (fifo_fd == -1)
+    {
         perror("Error opening FIFO");
         exit(EXIT_FAILURE);
     }
 
-    while ((bytes_read = read(fifo_fd, buffer, sizeof(buffer))) > 0) {
+    while ((bytes_read = read(fifo_fd, buffer, sizeof(buffer))) > 0)
+    {
         write(STDOUT_FILENO, buffer, bytes_read);
     }
 
     close(fifo_fd);
 }
-
-
-
 
 ## OUTPUT
 ![Alt text](2.png)
